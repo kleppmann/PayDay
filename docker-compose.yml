@@ -1,0 +1,212 @@
+version: '3.8'
+
+services:
+
+    monitoring-prometheus-service:
+        build:
+            context: ./prometheus
+            args:
+                - config.file=/etc/prometheus/prometheus.yml
+        volumes:
+            - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+        container_name: monitoring-prometheus-service
+        image: shnovruzov/monitoring-prometheus-service
+        ports:
+            - "9090:9090"
+
+    monitoring-grafana-service:
+        build:
+            context: ./grafana
+        container_name: monitoring-grafana-service
+        image: shnovruzov/monitoring-grafana-service
+        ports:
+            - "3000:3000"
+        depends_on:
+            - monitoring-prometheus-service
+
+    rabbitmq:
+        image: rabbitmq:management
+        container_name: rabbitmq
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+
+    db-postgresql:
+        image: postgres:12
+        container_name: postgres-db
+        restart: always
+        volumes:
+            - postgres-data:/var/lib/postgresql/dataStock
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: stock
+            PGDATA: /var/lib/postgresql/data/pgdataStock
+        healthcheck:
+            test: pg_isready -U postgres
+            interval: 1m
+            timeout: 10s
+            retries: 2
+
+    redis:
+        container_name: redis
+        image: redis:latest
+        ports:
+            - "6379:6379"
+        volumes:
+            - ./redis_data:/data
+
+    service-discovery:
+        container_name: service-discovery
+        build:
+            context: ./service-discovery
+            dockerfile: Dockerfile
+        image: shnovruzov/service-discovery:latest
+        expose:
+            - 8761
+        ports:
+            - 8761:8761
+
+    api-gateway:
+        container_name: api-gateway
+        build:
+            context: ./api-gateway
+            dockerfile: Dockerfile
+        image: shnovruzov/api-gateway:latest
+        expose:
+            - 8762
+        ports:
+            - 8080:8762
+        depends_on:
+            - service-discovery
+            - stock-service
+            - notification-service
+            - stock-adapter
+            - transaction-service
+
+    auth-service:
+        container_name: auth-service
+        build:
+            context: ./auth-service
+            dockerfile: Dockerfile
+        image: shnovruzov/auth-service:latest
+        expose:
+            - 8088
+        depends_on:
+            - service-discovery
+
+    stock-service:
+        container_name: stock-service
+        build:
+            context: ./stock-service
+            dockerfile: Dockerfile
+        image: shnovruzov/stock-service:latest
+        links:
+            - rabbitmq
+            - redis
+        expose:
+            - 8085
+        depends_on:
+            - service-discovery
+            - rabbitmq
+            - db-postgresql
+            - stock-adapter
+            - transaction-service
+            - notification-service
+            - redis
+        environment:
+            RABBIT_HOST: rabbitmq
+
+    stock-adapter:
+        container_name: stock-adapter
+        build:
+            context: ./stock-adapter
+            dockerfile: Dockerfile
+        image: shnovruzov/stock-adapter:latest
+        expose:
+            - 8084
+        depends_on:
+            - service-discovery
+
+    notification-service:
+        container_name: notification-service
+        build:
+            context: ./notification-service
+            dockerfile: Dockerfile
+        image: shnovruzov/notification-service:latest
+        links:
+            - rabbitmq
+        expose:
+            - 8083
+        depends_on:
+            - service-discovery
+            - mail-adapter
+        environment:
+            RABBIT_HOST: rabbitmq
+
+    websocket-service:
+        container_name: websocket-service
+        build:
+            context: ./websocket-service
+            dockerfile: Dockerfile
+        image: shnovruzov/websocket-service:latest
+        links:
+            - rabbitmq
+            - redis
+        expose:
+            - 8089
+        depends_on:
+            - service-discovery
+            - user-service
+        environment:
+            RABBIT_HOST: rabbitmq
+
+    transaction-service:
+        container_name: transaction-service
+        build:
+            context: ./transaction-service
+            dockerfile: Dockerfile
+        image: shnovruzov/transaction-service:latest
+        links:
+            - rabbitmq
+        expose:
+            - 8086
+        depends_on:
+            - service-discovery
+            - rabbitmq
+        environment:
+            RABBIT_HOST: rabbitmq
+
+    user-service:
+        container_name: user-service
+        build:
+            context: ./user-service
+            dockerfile: Dockerfile
+        image: shnovruzov/user-service:latest
+        expose:
+            - 8087
+        depends_on:
+            - service-discovery
+            - redis
+
+    mail-adapter:
+        container_name: mail-adapter
+        build:
+            context: ./mail-adapter
+            dockerfile: Dockerfile
+        image: shnovruzov/mail-adapter:latest
+        links:
+            - rabbitmq
+        expose:
+            - 8082
+        depends_on:
+            - service-discovery
+            - rabbitmq
+            - user-service
+        environment:
+            RABBIT_HOST: rabbitmq
+
+volumes:
+    postgres-data:

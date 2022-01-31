@@ -1,0 +1,75 @@
+server:
+  port: ${SERVER_PORT:8085}
+
+spring:
+  application:
+    name: stock-service
+  datasource:
+    url: jdbc:postgresql://db-postgresql:5432/stock
+    username: postgres
+    password: postgres
+    tomcat:
+      initial-size: 5
+      max-wait: 60000
+      max-active: 5
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  liquibase:
+    change-log: classpath:liquibase/changelog-master.xml
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    username: guest
+    password: guest
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 3s
+          max-attempts: 5
+          max-interval: 5s
+          multiplier: 1
+        missing-queues-fatal: false
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://service-discovery:8761/eureka
+
+ribbon:
+  eureka:
+    enabled: true
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 3000
+  hystrix:
+    enabled: true
+
+redis:
+  server:
+    urls: redis://redis:6379
+
+
+stock:
+  update:
+    cron: "*/60 * * * * *"
+
+rabbitmq:
+  stockTransactionRequestQ: STOCK_TRANSACTION_REQUEST_Q
+  notificationQ: NOTIFICATION_Q
+
+management:
+  endpoints:
+    enabled-by-default: true
+    web:
+      exposure:
+        include: "*"
+  trace:
+    http:
+      enabled: true

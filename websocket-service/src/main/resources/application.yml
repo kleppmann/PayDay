@@ -1,0 +1,48 @@
+server:
+  port: ${SERVER_PORT:8089}
+
+spring:
+  application:
+    name: websocket-service
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    username: guest
+    password: guest
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 3s
+          max-attempts: 5
+          max-interval: 5s
+          multiplier: 1
+        missing-queues-fatal: false
+
+redis:
+  server:
+    urls: redis://redis:6379
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://service-discovery:8761/eureka
+
+ribbon:
+  eureka:
+    enabled: true
+
+rabbitmq:
+  websocketRequestQ: WEBSOCKET_REQUEST_Q
+  websocketRequestDLQ: WEBSOCKET_REQUEST_DLQ
+  websocketResponseQ: WEBSOCKET_RESPONSE_Q
+  websocketResponseDLQ: WEBSOCKET_RESPONSE_DLQ
+
+management:
+  endpoints:
+    enabled-by-default: true
+    web:
+      exposure:
+        include: "*"
+  trace:
+    http:
+      enabled: true

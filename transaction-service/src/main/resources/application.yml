@@ -1,0 +1,46 @@
+server:
+  port: ${SERVER_PORT:8086}
+
+spring:
+  application:
+    name: transaction-service
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    username: guest
+    password: guest
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 3s
+          max-attempts: 5
+          max-interval: 5s
+          multiplier: 1
+        missing-queues-fatal: false
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://service-discovery:8761/eureka
+
+ribbon:
+  eureka:
+    enabled: true
+
+feign:
+  hystrix:
+    enabled: true
+
+rabbitmq:
+  stockTransactionRequestQ: STOCK_TRANSACTION_REQUEST_Q
+  stockTransactionRequestDLQ: STOCK_TRANSACTION_REQUEST_DLQ
+
+management:
+  endpoints:
+    enabled-by-default: true
+    web:
+      exposure:
+        include: "*"
+  trace:
+    http:
+      enabled: true

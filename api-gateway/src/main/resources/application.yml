@@ -1,0 +1,45 @@
+application:
+  jwt:
+    passwordStrength: 10
+    secretKey: really secret key. this key should be very safe and as long as possible.
+    tokenExpirationAfterDays: 10
+    tokenPrefix: 'Bearer '
+
+server:
+  port: ${SERVER_PORT:8762}
+
+spring:
+  application:
+    name: api-gateway
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    serviceUrl:
+      defaultZone: http://service-discovery:8761/eureka
+
+zuul:
+  host:
+    connect-timeout-millis: 100000
+    socket-timeout-millis: 100000
+  ignored-services: '*'
+  routes:
+    stock-service:
+      path: /stock/**
+      serviceId: stock-service
+      stripPrefix: true
+    auth-service:
+      path: /auth/**
+      serviceId: auth-service
+      stripPrefix: true
+
+management:
+  endpoints:
+    enabled-by-default: true
+    web:
+      exposure:
+        include: "*"
+  trace:
+    http:
+      enabled: true

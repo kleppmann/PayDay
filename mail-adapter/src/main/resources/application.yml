@@ -1,0 +1,56 @@
+server:
+  port: ${SERVER_PORT:8082}
+
+spring:
+  application:
+    name: mail-adapter
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    username: guest
+    password: guest
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 3s
+          max-attempts: 5
+          max-interval: 5s
+          multiplier: 1
+        missing-queues-fatal: false
+
+feign:
+  hystrix:
+    enabled: true
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://service-discovery:8761/eureka
+
+ribbon:
+  eureka:
+    enabled: true
+
+rabbitmq:
+    emailQ: EMAIL_Q
+    emailDLQ: EMAIL_DLQ
+
+sendgrid:
+  apiKey: "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"
+
+email:
+  subject:
+    stock:
+      transaction: Stock transaction
+      change: Stock change
+  fromAddress: ibarpayday@gmail.com
+
+management:
+  endpoints:
+    enabled-by-default: true
+    web:
+      exposure:
+        include: "*"
+  trace:
+    http:
+      enabled: true

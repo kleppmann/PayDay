@@ -1,0 +1,56 @@
+server:
+  port: ${SERVER_PORT:8083}
+
+spring:
+  application:
+    name: notification-service
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    username: guest
+    password: guest
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 3s
+          max-attempts: 5
+          max-interval: 5s
+          multiplier: 1
+        missing-queues-fatal: false
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://service-discovery:8761/eureka
+
+ribbon:
+  eureka:
+    enabled: true
+
+feign:
+  hystrix:
+    enabled: true
+
+rabbitmq:
+    notificationQ: NOTIFICATION_Q
+    notificationDLQ: NOTIFICATION_DLQ
+    emailQ: EMAIL_Q
+    websocketRequestQ: WEBSOCKET_REQUEST_Q
+    websocketResponseQ: WEBSOCKET_RESPONSE_Q
+
+email:
+  subject:
+    stock:
+      transaction: Stock transaction
+      change: Stock change
+  fromAddress: ibarpayday@gmail.com
+
+management:
+  endpoints:
+    enabled-by-default: true
+    web:
+      exposure:
+        include: "*"
+  trace:
+    http:
+      enabled: true

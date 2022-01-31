@@ -1,0 +1,72 @@
+plugins {
+	id 'org.springframework.boot' version '2.3.1.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+	id 'java'
+	id 'jacoco'
+	id 'groovy'
+	id 'checkstyle'
+}
+
+group = 'az.ibar.payday'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	set('springCloudVersion', "Hoxton.SR7")
+}
+
+dependencies {
+	implementation('org.springframework.boot:spring-boot-starter')
+	implementation('org.springframework.boot:spring-boot-starter-web')
+	implementation('org.springframework:spring-webmvc')
+
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+	compileOnly('org.projectlombok:lombok')
+	annotationProcessor('org.projectlombok:lombok')
+	compile('org.mapstruct:mapstruct-jdk8:1.3.1.Final')
+	annotationProcessor('org.mapstruct:mapstruct-processor:1.3.1.Final')
+
+	implementation('org.springframework.boot:spring-boot-starter-amqp')
+
+	compile('org.springframework.boot:spring-boot-starter-actuator')
+	implementation("io.micrometer:micrometer-registry-prometheus:latest.release")
+
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
+}
+
+checkstyle {
+	toolVersion '8.14'
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
+bootJar {
+	archiveName = "${project.name}.jar"
+}
+
+test {
+	useJUnitPlatform()
+}
+
+jacoco {
+	toolVersion = '0.8.6'
+}
+
+jacocoTestReport{
+	reports{
+		xml.enabled true
+	}
+}
+
+test.finalizedBy jacocoTestReport

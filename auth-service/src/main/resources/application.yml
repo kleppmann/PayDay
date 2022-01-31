@@ -1,0 +1,42 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: auth-service
+
+application:
+  jwt:
+    passwordStrength: 10
+    secretKey: really secret key. this key should be very safe and as long as possible.
+    tokenExpirationAfterDays: 10
+    tokenPrefix: 'Bearer '
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://service-discovery:8761/eureka
+
+ribbon:
+  eureka:
+    enabled: true
+
+management:
+  endpoints:
+    enabled-by-default: true
+    web:
+      exposure:
+        include: "*"
+  trace:
+    http:
+      enabled: true
+
+test:
+  username: admin
+  password: admin
+
+ldap:
+  urls: ldaps://ibar.local:233
+  base: DC=ibar,DC=local
+  dn: CN=DL Test LDAP User,CN=Users,DC=ibar,DC=local
+  pass: "Jigkem&3jf8gxep89"
